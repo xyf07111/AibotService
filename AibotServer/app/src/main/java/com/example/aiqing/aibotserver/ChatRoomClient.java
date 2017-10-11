@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,15 +19,21 @@ public class ChatRoomClient {
     private long mStringToDate;
     private PrintWriter pw;
     private Socket s;
+    public String lastTime = null;
 
-    public static ChatRoomClient getInstance() {
+    public static  ChatRoomClient getInstance() {
         if (instance == null) {
-            instance = new ChatRoomClient();
+            synchronized (ChatRoomClient.class){
+                if (instance == null) {
+                    instance = new ChatRoomClient();
+                }
+            }
         }
         return instance;
     }
 
     public void CreatSocket(final String paramString, final Context context) {
+
         new Thread() {
             public void run() {
                 try {
@@ -36,14 +41,21 @@ public class ChatRoomClient {
                     sendMessage(paramString.toString());
                     while (true) {
                         String message = br.readLine();
+                        //send@1@2017-10-10 11:22:05@2017-11-10 11:22:14@2017-10-10 14:20:43
                         Log.e("收到消息", "run: "+message );
+                        //Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
                         if (message == null) {
-                            Intent localIntent1 = new Intent("com.sunbo.main.LOCKROBOT");
-                            localIntent1.putExtra("status", 3);
-                            context.sendBroadcast(localIntent1);
-                            return;
+                            continue;
+//                            Log.e("收到消息未空", "run: " + message+"isconnected"+s.isConnected());
+//                            if (instance.lastTime == null || s.isConnected()) {
+//                                return;
+//                            }
+//                            Log.e("收到消息未空------", "run: "+"isconnected"+s.isConnected());
+//                            Intent localIntent1 = new Intent("com.sunbo.main.LOCKROBOT");
+//                            localIntent1.putExtra("status", 3);
+//                            context.sendBroadcast(localIntent1);
+//                            return;
                         }
-                        System.out.println("第一次服务端发来信息:" + message);
                         Log.e("第一次服务端发来信息", "run: " + message);
                         String[] arrayOfString = message.split("@");
 
@@ -54,28 +66,21 @@ public class ChatRoomClient {
                         String str3 = arrayOfString[(-1 + arrayOfString.length)];//2017-09-28 14:51:10 系统时间
                         String str4 = arrayOfString[(-3 + arrayOfString.length)];//2017-09-23 15:42:31 开租时间
 
-                        if (str2==null){
-                            //买断
-                            Intent intent = new Intent("com.sunbo.main.LOCKROBOT");
-                            intent.putExtra("status",4);
-                            context.sendBroadcast(intent);
-                        }
-
                         long stringToDate = StringTime.getStringToDate(str3);
-                        //  ChatRoomClient.access$102(ChatRoomClient.this, StringTime.getStringToDate(str3));
-                        Log.e("666", "run: " + stringToDate);
-                        //Log.e("666", "run: " + ChatRoomClient.this.mStringToDate);
                         Intent localIntent2 = new Intent("com.qihancloud.setting.RESET_TIME");
                         localIntent2.putExtra("time", stringToDate);
-//						localIntent2.putExtra("time", ChatRoomClient.this.mStringToDate);
                         localIntent2.putExtra("auto", 0);
                         context.sendBroadcast(localIntent2);
+
+                       lastTime=str2;
+
                         SharedPreferences.Editor localEditor = context.getSharedPreferences("DeviceId", Context.MODE_PRIVATE).edit();
                         localEditor.putString("lasttime", str2);
                         localEditor.putString("mDeviceId", paramString.toString());
                         localEditor.commit();
-                        Log.e("数据", "run: 状态是" + str1 + "到期时间是" + str2);
+
                         if (str1.equals("0")) {
+                            Log.e("锁定0==", "锁定0==");
                             new GotoHome().gotoHome(context);
                             Intent localIntent5 = new Intent("com.sunbo.main.LOCKROBOT");
                             localIntent5.putExtra("status", 3);
@@ -90,9 +95,9 @@ public class ChatRoomClient {
                             long l3 = l2 - l1;
                             Log.e("123456", "run: 租赁开始时间戳" + l1 + "结束时间戳" + l2 + "差" + l3);
                             localIntent4.putExtra("endTime", l2);
-                            localIntent4.putExtra("remainTime", l3 / 1000L);
+                            localIntent4.putExtra("remainTime", l3 / 1000);
                             context.sendBroadcast(localIntent4);
-
+                            TimerTool.getInstance().initTime(context);
                         } else if (str1.equals("2")) {
                             Intent localIntent3 = new Intent("com.sunbo.main.LOCKROBOT");
                             localIntent3.putExtra("status", 4);
@@ -101,14 +106,20 @@ public class ChatRoomClient {
                         //  TimerTool.getInstance().initTime(this);
                     }
                 } catch (Exception localIOException) {
-                    Log.e("连接异常", "CreatSocket: "+localIOException );
                     localIOException.printStackTrace();
-                    Log.e("创建socket失败", "run: 创建socket失败");
-                    TimerTool.getInstance().initTime(context);
+                    if (instance.lastTime == null) {
+                        Log.e("lastTime==null", "空的时间");
+                        Intent intent2 = new Intent("com.sunbo.main.LOCKROBOT");
+                        intent2.putExtra("status", 3);
+                        context.sendBroadcast(intent2);
+                    }else{
+                        TimerTool.getInstance().initTime(context);
+                    }
                 }
-        Toast.makeText(context, "断开连接", Toast.LENGTH_SHORT).show();
             }
         }.start();
+       // Toast.makeText(context, "断开连接", Toast.LENGTH_SHORT).show();
+
     }
 
     public void InitSocket() throws IOException {

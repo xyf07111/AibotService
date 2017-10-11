@@ -15,7 +15,6 @@ import java.util.TimerTask;
 
 public class TimerTool {
     private static TimerTool instance = null;
-    public Context mContext;
     private long mGetData;
     private Timer mTimer;
 
@@ -34,27 +33,30 @@ public class TimerTool {
 
     public void initTime(final Context context) {
         String str1 = context.getSharedPreferences("DeviceId", Context.MODE_PRIVATE).getString("lasttime", "");
+        if (str1==null){
+            return;
+        }
         Log.e("取出的时间", "initInternet: " + str1);
         mGetData = StringTime.getStringToDate(str1);
-        if (mTimer != null)
+        if (mTimer != null) {
             stopTimer();
-        String str2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        if (StringTime.getStringToDate(str2) - mGetData > 0) {
-            Log.e("租赁到期", "initTime: 租赁到期" + str2);
-            return;
         }
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
-              public void run() {
-                   Log.e("星期五", "run: 星期五");
-                   if (StringTime.getStringToDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())) - TimerTool.this.mGetData > 0) {
-                   Log.e("计时器停止", "run: 计时器停止");
-                   TimerTool.this.stopTimer();
-                   Intent localIntent = new Intent("com.sunbo.main.LOCKROBOT");
-                   localIntent.putExtra("status", 3);
-                   context.sendBroadcast(localIntent);
-                   }
-                  }
-                }, 0, 1000);
+            @Override
+            public void run() {
+                Log.e("计时器信息", "run: " + "88888888");
+                String currentStr =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                Long currentTime =  StringTime.getStringToDate(currentStr);
+                //当租赁时间到期停止计时器
+                if ( currentTime - mGetData > 0) {
+                    Log.e("计时器停止", "run: 计时器停止");
+                    TimerTool.this.stopTimer();
+                    Intent localIntent = new Intent("com.sunbo.main.LOCKROBOT");
+                    localIntent.putExtra("status", 3);
+                    context.sendBroadcast(localIntent);
+                }
+            }
+        }, 0, 1000);
     }
 }
