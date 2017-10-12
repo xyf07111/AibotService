@@ -20,6 +20,7 @@ public class ChatRoomClient {
     private PrintWriter pw;
     private Socket s;
     public String lastTime = null;
+    private SharedPreferences.Editor mEditor;
 
     public static  ChatRoomClient getInstance() {
         if (instance == null) {
@@ -74,10 +75,11 @@ public class ChatRoomClient {
 
                        lastTime=str2;
 
-                        SharedPreferences.Editor localEditor = context.getSharedPreferences("DeviceId", Context.MODE_PRIVATE).edit();
-                        localEditor.putString("lasttime", str2);
-                        localEditor.putString("mDeviceId", paramString.toString());
-                        localEditor.commit();
+                        mEditor = context.getSharedPreferences("DeviceId", Context.MODE_PRIVATE).edit();
+                        mEditor.putString("lasttime", str2);
+                        mEditor.putString("mDeviceId", paramString.toString());
+                        mEditor.putString("BUYOUT","0");
+                        mEditor.commit();
 
                         if (str1.equals("0")) {
                             Log.e("锁定0==", "锁定0==");
@@ -102,16 +104,22 @@ public class ChatRoomClient {
                             Intent localIntent3 = new Intent("com.sunbo.main.LOCKROBOT");
                             localIntent3.putExtra("status", 4);
                             context.sendBroadcast(localIntent3);
+
+                            mEditor.putString("BUYOUT","1");
+                            mEditor.commit();
+
                         }
                         //  TimerTool.getInstance().initTime(this);
                     }
                 } catch (Exception localIOException) {
                     localIOException.printStackTrace();
                     if (instance.lastTime == null) {
-                        Log.e("lastTime==null", "空的时间");
-                        Intent intent2 = new Intent("com.sunbo.main.LOCKROBOT");
-                        intent2.putExtra("status", 3);
-                        context.sendBroadcast(intent2);
+                        if (!context.getSharedPreferences("DeviceId", Context.MODE_PRIVATE).getString("BUYOUT","0").equals("1")){
+                            Log.e("lastTime==null", "空的时间");
+                            Intent intent2 = new Intent("com.sunbo.main.LOCKROBOT");
+                            intent2.putExtra("status", 3);
+                            context.sendBroadcast(intent2);
+                        }
                     }else{
                         TimerTool.getInstance().initTime(context);
                     }
