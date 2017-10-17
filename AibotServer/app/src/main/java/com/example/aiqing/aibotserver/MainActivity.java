@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.qihancloud.opensdk.base.BindBaseActivity;
 import com.qihancloud.opensdk.beans.FuncConstant;
@@ -39,7 +38,7 @@ public class MainActivity extends BindBaseActivity {
         edit.commit();
         finish();
 
-        Toast.makeText(this, "111111111111111", Toast.LENGTH_SHORT).show();
+     //   Toast.makeText(this, "111111111111111", Toast.LENGTH_SHORT).show();
         Intent intent9 = new Intent("com.sunbo.main.LOCKROBOT");
         intent9.putExtra("status", 3);
         sendBroadcast(intent9);

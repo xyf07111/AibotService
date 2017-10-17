@@ -3,7 +3,6 @@ package com.example.aiqing.aibotserver;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.widget.Toast;
 
 import com.qihancloud.opensdk.base.BindBaseService;
 import com.qihancloud.opensdk.beans.FuncConstant;
@@ -26,7 +25,7 @@ public class MainService extends BindBaseService {
     }
 
     public void onCreate() {
-        Toast.makeText(this, "onCreate()", Toast.LENGTH_SHORT).show();
+       // Toast.makeText(this, "onCreate()", Toast.LENGTH_SHORT).show();
         SystemManager systemManager = (SystemManager) getUnitManager(FuncConstant.SYSTEM_MANAGER);
         String de = systemManager.getDeviceId();
         //拼接 con:12345678
